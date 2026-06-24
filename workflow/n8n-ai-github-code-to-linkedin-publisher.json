@@ -1,0 +1,626 @@
+{
+  "name": "Github Code to LinkedIn Publisher",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🚀 Github Code to LinkedIn Publisher\n\n### How it works\nAutomatically turns your code commits into engaging LinkedIn posts! \n1. **Detects** new/modified code in Github.\n2. **Analyzes** the code with AI to write a catchy post & extract key snippets.\n3. **Generates** a beautiful \"Mac-window\" style image of the code.\n4. **Uploads** the image back to Github & **Posts** everything to LinkedIn.\n\n### Setup steps\n- [ ] **Credentials**: Configure Github, LinkedIn, OpenRouter, and HCTI API.\n- [ ] **Github Nodes**: Update `owner` and `repository` fields in the Trigger and Download nodes.\n- [ ] **LinkedIn Node**: Update the `person` URN.\n- [ ] **HCTI**: Ensure you have an account for image generation.",
+        "height": 423,
+        "width": 686,
+        "color": 5
+      },
+      "id": "d953f28d-c0f7-409d-8811-155c2984a75c",
+      "name": "Main Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        64
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 1. Monitor & Fetch\nWatches for `push` events, extracts modified files, and downloads the raw code content.",
+        "height": 372,
+        "width": 896,
+        "color": 7
+      },
+      "id": "f33588ab-3f8c-4f99-b6a2-9e57288a328c",
+      "name": "Section 1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        160
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 2. AI Content Creation\nUses an LLM to analyze the code, write a LinkedIn post, and select the best snippet.",
+        "height": 468,
+        "width": 532,
+        "color": 7
+      },
+      "id": "681b9ada-c435-4f97-9413-0f8b44236265",
+      "name": "Section 2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -208,
+        272
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 3. Image Generation\nCreates HTML/CSS for a \"pretty\" code window and converts it to an image via API.",
+        "height": 340,
+        "width": 652,
+        "color": 7
+      },
+      "id": "225c387c-de39-420b-b28e-52011b794331",
+      "name": "Section 3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        368,
+        192
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### 4. Store & Publish\nUploads the generated image to your repo for hosting, then combines text + image for the final LinkedIn post.",
+        "height": 492,
+        "width": 844,
+        "color": 7
+      },
+      "id": "9c819b4f-399e-416c-a302-0a485db08e5b",
+      "name": "Section 4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        720,
+        -80
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-github-username"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-source-repo-name"
+        },
+        "events": [
+          "push"
+        ],
+        "options": {}
+      },
+      "id": "f279ca90-1b36-4892-a655-ceb5e1509853",
+      "name": "Github Trigger1",
+      "type": "n8n-nodes-base.githubTrigger",
+      "position": [
+        -1056,
+        256
+      ],
+      "webhookId": "27faf4c4-2fa4-4df0-b023-87e55cafc956",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-github-username"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-source-repo-name"
+        },
+        "filePath": "={{ $json.filePath }}",
+        "additionalParameters": {}
+      },
+      "id": "292e63e6-21e7-4be0-b9a5-3c94a05f5daf",
+      "name": "GitHub File Download",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        -608,
+        256
+      ],
+      "webhookId": "65f14e41-f887-4878-b292-3f2a0a4dca39",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "person": "your-linkedin-urn",
+        "text": "={{ $('LinkedIn Content Creator').item.json.output.post_title }}\n\n{{ $('LinkedIn Content Creator').item.json.output.post_content }}\n{{ $('LinkedIn Content Creator').item.json.output.hashtags }}\n\nLink to Github: {{ $json.content._links.html }}\n",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {
+          "visibility": "PUBLIC"
+        }
+      },
+      "id": "90bca983-e2d0-43c2-90d6-c0a8ed396e63",
+      "name": "Post to LinkedIn",
+      "type": "n8n-nodes-base.linkedIn",
+      "position": [
+        1312,
+        256
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Data\n{{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a LinkedIn content strategist and copywriter specialising in professional, engaging technical content for software engineers and developers.\n\nAnalyze the provided code file (which could be Python, Java, TypeScript, React, Rust, Go, Terraform, Docker, C#, C++, Kubernetes, YAML, SQL, or others) and create:\n1. A LinkedIn post with compelling narrative (without including the actual code)\n2. Extract the most important/interesting code snippet (10-20 lines max) that showcases the key concept\n\nFor the LinkedIn post:\n- Open with a compelling hook that grabs attention\n- Explain what the code does and why it's valuable\n- Use professional yet conversational tone\n- Include a clear call-to-action\n- Stay within 400 characters\n- DO NOT include the actual code in the post content\n\nFor the code snippet:\n- Select the most interesting or important part\n- Keep it concise (10-20 lines)\n- Ensure it's self-contained and understandable\n- Include any necessary context as comments\n\nIMPORTANT: Return hashtags as a single string with space-separated hashtags, NOT as an array.\n\nFormat your response as JSON with the following structure:\n{\n  \"post_title\": \"string\",\n  \"post_content\": \"string (narrative without code and without hashtags)\",\n  \"code_snippet\": \"string (the actual code to display)\",\n  \"code_language\": \"string (javascript, typescript, python, etc.)\",\n  \"hashtags\": \"string\",\n  \"character_count\": integer\n}"
+        }
+      },
+      "id": "3d618c8c-4ec7-46ba-be2d-c852a8a02eff",
+      "name": "LinkedIn Content Creator",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -160,
+        384
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the code snippet and language from previous node\nconst codeSnippet = $json.code_snippet || '';\nconst language = $json.code_language || 'javascript';\n\n// Calculate dimensions based on content\nconst lines = codeSnippet.split('\\n');\nconst lineCount = lines.length;\nconst maxLineLength = Math.max(...lines.map(line => line.length));\n\n// Adjust sizing calculations\nconst charWidth = 8.4; // approximate width per character in monospace\nconst lineHeight = 24; // pixels per line\nconst containerPadding = 20; // padding inside code container\nconst bodyPadding = 10; // minimal body padding\nconst headerHeight = 40; // header with dots\n\n// Calculate dimensions and FORCE INTEGERS (Math.ceil) to prevent API errors\nconst calculatedWidth = Math.max(400, maxLineLength * charWidth + (containerPadding * 2));\nconst contentWidth = Math.ceil(Math.min(calculatedWidth, 1200)); \nconst contentHeight = Math.ceil((lineCount * lineHeight) + headerHeight + (containerPadding * 2));\n\n// Create HTML with minimal padding, sized to content\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <link href=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css\" rel=\"stylesheet\" />\n  <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n  <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n  <link href=\"https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap\" rel=\"stylesheet\">\n  <style>\n    * {\n      margin: 0;\n      padding: 0;\n      box-sizing: border-box;\n    }\n    html, body {\n      width: 100%;\n      height: 100%;\n      margin: 0;\n      padding: 0;\n    }\n    body {\n      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n      font-family: 'Fira Code', 'Consolas', monospace;\n      padding: ${bodyPadding}px;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .code-container {\n      background: #2d2d2d;\n      border-radius: 10px;\n      padding: ${containerPadding}px;\n      box-shadow: 0 10px 30px rgba(0,0,0,0.4);\n      width: auto;\n      max-width: 100%;\n    }\n    .header {\n      display: flex;\n      gap: 8px;\n      margin-bottom: 15px;\n    }\n    .dot {\n      width: 12px;\n      height: 12px;\n      border-radius: 50%;\n    }\n    .dot-red { background: #ff5f56; }\n    .dot-yellow { background: #ffbd2e; }\n    .dot-green { background: #27c93f; }\n    pre {\n      margin: 0;\n      padding: 0;\n      overflow-x: visible;\n      white-space: pre;\n      max-width: 100%;\n    }\n    code {\n      font-size: 12px;\n      line-height: 1.5;\n      display: block;\n      font-family: 'Fira Code', 'Consolas', monospace;\n    }\n    /* Override Prism's default margins */\n    pre[class*=\"language-\"] {\n      margin: 0;\n      padding: 0;\n      background: transparent;\n    }\n  </style>\n</head>\n<body>\n  <div class=\"code-container\">\n    <div class=\"header\">\n      <div class=\"dot dot-red\"></div>\n      <div class=\"dot dot-yellow\"></div>\n      <div class=\"dot dot-green\"></div>\n    </div>\n    <pre><code class=\"language-${language}\">${codeSnippet.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>\n  </div>\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js\"></script>\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-${language}.min.js\"></script>\n</body>\n</html>\n`;\n\nreturn [{\n  json: {\n    ...items[0].json,\n    html: html,\n    estimatedWidth: contentWidth + (bodyPadding * 2),\n    estimatedHeight: contentHeight + (bodyPadding * 2)\n  }\n}];"
+      },
+      "id": "dd00adfb-c022-4da7-9b3e-1e6b0fbb7f77",
+      "name": "Create Code HTML",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        416,
+        384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hcti.io/v1/image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "html",
+              "value": "={{ $json.html }}"
+            },
+            {
+              "name": "google_fonts",
+              "value": "Fira Code"
+            },
+            {
+              "name": "viewport_width",
+              "value": "={{ Math.min($json.estimatedWidth || 800, 1920) }}"
+            },
+            {
+              "name": "viewport_height",
+              "value": "={{ Math.min($json.estimatedHeight || 400, 1080) }}"
+            },
+            {
+              "name": "device_scale",
+              "value": "={{ 2 }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "3df9406b-5c07-4a60-b211-3da2c2540e92",
+      "name": "Generate Code Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        640,
+        384
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "c5f6dd38-dfd1-4e47-a1fb-da4bc5407782",
+      "name": "GET the genarted Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        864,
+        384
+      ],
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-github-username"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "your-image-storage-repo"
+        },
+        "filePath": "={{ $('GitHub File Download').item.json.filePath }}",
+        "fileContent": "={{ $json.data }}",
+        "commitMessage": "=Upload generated image for {{ $('GitHub File Download').item.json.filePath }}"
+      },
+      "id": "8a0e202f-e55d-4d60-808e-164dcbad604d",
+      "name": "Upload to Image Repo",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        864,
+        128
+      ],
+      "webhookId": "5208ba8d-bfa6-4f88-a22c-1242bfc8b26f",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "id": "2d19835f-e00e-4b2d-be26-76a4457c8d60",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1088,
+        256
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the head_commit object from the webhook body\nconst headCommit = $json.body.head_commit;\n\n// Get the arrays of added and modified files\nconst addedFiles = headCommit.added || [];\nconst modifiedFiles = headCommit.modified || [];\n\n// Combine both arrays\nconst allChangedFiles = [...addedFiles, ...modifiedFiles];\n\n// Define allowed extensions and ignored files\nconst allowedExtensions = ['.js', '.ts', '.py', '.go', '.rs', '.java', '.cs', '.cpp', '.tf', '.bicep', '.yaml', '.yml', '.sql'];\nconst ignoredPaths = ['README.md', 'package-lock.json', 'node_modules', 'dist', 'images', 'pdf', 'png', 'jpg'];\n\n// Filter files\nconst filteredFiles = allChangedFiles.filter(filePath => {\n  // Check if file should be ignored\n  if (ignoredPaths.some(ignored => filePath.includes(ignored))) {\n    return false;\n  }\n  \n  // Check if file has an allowed extension\n  return allowedExtensions.some(ext => filePath.toLowerCase().endsWith(ext));\n});\n\n// If there are no changed files after filtering, return empty\nif (filteredFiles.length === 0) {\n  return [];\n}\n\n// Create n8n items\nconst items = filteredFiles.map(filePath => {\n  return {\n    json: {\n      filePath: filePath\n    }\n  };\n});\n\nreturn items;"
+      },
+      "id": "a22c469c-34ab-4da6-a21d-bfd3efecee37",
+      "name": "Extract Modified Files",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -832,
+        256
+      ],
+      "typeVersion": 2,
+      "notes": "Needed to extract the path of different types of changes in Github, be it modified, added, etc."
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "id": "0c5d7e59-f684-4c6f-8a54-b37e8d10bbf0",
+      "name": "Extract from File",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -384,
+        384
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n\t\"type\": \"object\",\n\t\"properties\": {\n\t\t\"post_title\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"post_content\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"code_snippet\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"code_language\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"hashtags\": {\n\t\t\t\"type\": \"string\"\n\t\t},\n      \"character_count\": {\n\t\t\t\"type\": \"integer\"\n\t\t}\n\t}\n}"
+      },
+      "id": "cecf835e-1aab-4344-b7b9-3ec01fd21f1e",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        -16,
+        608
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "13b0cb01-c54d-43bb-90df-a48f12d76fb3",
+              "name": "post_title",
+              "type": "string",
+              "value": "={{ $json.output.post_title }}"
+            },
+            {
+              "id": "f3b23908-6876-46b7-be5f-d8a41c209202",
+              "name": "post_content",
+              "type": "string",
+              "value": "={{ $json.output.post_content }}"
+            },
+            {
+              "id": "a915c874-e76a-408e-ad92-d8863397a5e0",
+              "name": "code_snippet",
+              "type": "string",
+              "value": "={{ $json.output.code_snippet }}"
+            },
+            {
+              "id": "571704c3-425c-4aa2-a44a-1147ac56ad1c",
+              "name": "code_language",
+              "type": "string",
+              "value": "={{ $json.output.code_language }}"
+            },
+            {
+              "id": "6599c4be-cbaf-4155-b7b9-4930b1386e48",
+              "name": "hashtags",
+              "type": "string",
+              "value": "={{ $json.output.hashtags }}"
+            },
+            {
+              "id": "0e9bde61-489f-4c20-b68a-0193cd8a388e",
+              "name": "character_count",
+              "type": "number",
+              "value": "={{ $json.output.character_count }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5c5a80ab-363a-49e3-8c44-11ba5e2259be",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        192,
+        384
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash",
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "b8293843-3492-461d-86c3-6dcab9da07a1",
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        -144,
+        608
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "0bb5bc50-3782-472a-9d1c-c290c93a7889",
+      "name": "Extract from File1",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        640,
+        128
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "content": "### 🚀 About this Workflow\n**Version**: 1.0.0\n**Release Date**: June 2026\n**Maintainer**: Rishvin Reddy\n**License**: MIT\n**Compatibility**: n8n >= 1.100\n\n*If you found this workflow useful, please ⭐ the repository!*\n[GitHub](https://github.com/RishvinReddy)\n[Portfolio](https://rishvinreddy.github.io/)",
+        "height": 260,
+        "width": 300,
+        "color": 6
+      },
+      "id": "e43b1265-d91f-4ab6-88cf-c3f2b184236a",
+      "name": "Version Info",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1840,
+        520
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Post to LinkedIn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Create Code HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Github Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Extract Modified Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Code HTML": {
+      "main": [
+        [
+          {
+            "node": "Generate Code Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "LinkedIn Content Creator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Upload to Image Repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Code Image": {
+      "main": [
+        [
+          {
+            "node": "GET the genarted Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub File Download": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Image Repo": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LinkedIn Content Creator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Modified Files": {
+      "main": [
+        [
+          {
+            "node": "GitHub File Download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET the genarted Image": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "LinkedIn Content Creator": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "LinkedIn Content Creator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b86da979-9692-4bbf-8c55-fe2adc9fed2a",
+  "meta": {
+    "instanceId": "4c448ea5750180c4eed7ef520c0de575531b0c2ee1933e91d731dde82a6596e5",
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "id": "dd3xVLHFiWhKQEPM",
+  "tags": []
+}
