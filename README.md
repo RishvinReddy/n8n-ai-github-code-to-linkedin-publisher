@@ -12,6 +12,28 @@ If this workflow helps you, consider starring the repository.
 
 This n8n workflow monitors your GitHub repositories for new commits, extracts the modified code, analyzes it using an AI model (OpenRouter), and generates an engaging, professional LinkedIn post complete with a syntax-highlighted image of the most important code snippet.
 
+```mermaid
+mindmap
+  root((n8n Workflow))
+    Triggers
+      GitHub Webhook
+      Push Events
+    Data Extraction
+      Code Diff
+      File Filtering
+    AI Processing
+      OpenRouter
+      Gemini / Claude
+      Structured JSON
+    Media Generation
+      HCTI API
+      Prism.js Syntax
+      GitHub Hosting
+    Publishing
+      LinkedIn API
+      Text + Image Post
+```
+
 ## Features
 
 | Feature | Supported |
@@ -108,6 +130,58 @@ stateDiagram-v2
     Published --> [*]
 ```
 
+## Deep Dive: AI Processing Pipeline
+
+The core intelligence of this workflow lies in the LangChain Structured Output Parser inside n8n. It enforces a strict schema on the LLM to ensure reliable, parsable data for downstream nodes.
+
+```mermaid
+classDiagram
+    class LinkedInContent {
+      +String post_title
+      +String post_content
+      +String code_snippet
+      +String code_language
+      +String hashtags
+      +Integer character_count
+    }
+    class OutputParser {
+      +parse(LLM_Response) LinkedInContent
+    }
+    OutputParser ..> LinkedInContent : Validates against schema
+```
+
+## Supported Languages
+
+The workflow automatically detects and syntax-highlights a wide variety of programming languages. While any text-based code file can be processed, the default filter includes standard modern languages.
+
+```mermaid
+pie title Supported Language Distribution
+    "JavaScript/TypeScript" : 40
+    "Python" : 25
+    "Go/Rust" : 15
+    "Java/C#" : 10
+    "Terraform/Bicep" : 10
+```
+
+## Error Handling & Retry Strategies
+
+To ensure maximum reliability, especially when dealing with rate-limited APIs, the workflow implements structural error handling.
+
+```mermaid
+flowchart TD
+    A[API Node Execution] --> B{Success?}
+    B -- Yes --> C[Continue Pipeline]
+    B -- No --> D{Error Type}
+    
+    D -- Rate Limit / 429 --> E[Wait 60s & Retry]
+    E --> A
+    
+    D -- Bad JSON format --> F[Fallback Prompt]
+    F --> A
+    
+    D -- Fatal / 401 --> G[Halt & Alert User]
+```
+
 ## Use Cases
 
 - **Personal Branding:** Maintain an active, professional presence on LinkedIn without manual effort.
@@ -168,10 +242,22 @@ flowchart LR
 
 ## Roadmap
 
-- [ ] Commit batching
-- [ ] PR support
-- [ ] Release notes
-- [ ] Multi-image carousel
+The future development of this workflow is mapped out below:
+
+```mermaid
+gantt
+    title Development Roadmap
+    dateFormat  YYYY-MM-DD
+    section v1.0
+    Core Workflow Release     :done,    des1, 2026-06-25, 1d
+    Documentation & Diagrams  :done,    des2, 2026-06-25, 1d
+    section v1.1
+    Commit Batching Logic     :active,  des3, 2026-07-01, 7d
+    Pull Request Support      :         des4, after des3, 5d
+    section v2.0
+    Multi-image Carousels     :         des5, 2026-07-15, 10d
+    Automated Release Notes   :         des6, after des5, 7d
+```
 
 ## Contributing
 
