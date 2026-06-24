@@ -1,5 +1,7 @@
 # n8n AI GitHub Code to LinkedIn Publisher
 
+![n8n AI GitHub Code to LinkedIn Publisher Banner](assets/banner.png)
+
 Automatically transform GitHub commits into AI-generated LinkedIn posts with beautiful code images using n8n, OpenRouter, GitHub, and LinkedIn.
 
 Created by **Rishvin Reddy**
@@ -11,6 +13,13 @@ If this workflow helps you, consider starring the repository.
 ## Overview
 
 This n8n workflow monitors your GitHub repositories for new commits, extracts the modified code, analyzes it using an AI model (OpenRouter), and generates an engaging, professional LinkedIn post complete with a syntax-highlighted image of the most important code snippet.
+
+## Gallery
+
+| The Workflow | The Generated Post | The Code Snippet |
+| :---: | :---: | :---: |
+| ![Workflow Canvas](screenshots/workflow.png) | ![LinkedIn Post Mockup](screenshots/linkedin-post.png) | ![Syntax Highlighted Code](screenshots/generated-image.png) |
+
 
 ```mermaid
 mindmap
